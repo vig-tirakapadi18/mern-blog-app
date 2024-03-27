@@ -3,9 +3,9 @@ import { Link } from "react-router-dom";
 import {
     FaFacebookSquare,
     FaInstagramSquare,
-    FaSquareThreads,
+    FaTwitterSquare,
     FaGithubSquare,
-    FaSquareXTwitter,
+    FaLinkedin,
 } from "react-icons/fa";
 
 const FooterComp = () => {
@@ -25,7 +25,7 @@ const FooterComp = () => {
                             Blog
                         </Link>
                     </div>
-                    <div className="grid grid-cols-2 gap-8 mt-4 sm:grid-cols-6 sm:gap-6">
+                    <div className="grid grid-cols-2 gap-8 mt-4 sm:grid-cols-3 sm:gap-6">
                         <div>
                             <Footer.Title title="About" />
                             <Footer.LinkGroup col>
@@ -73,37 +73,36 @@ const FooterComp = () => {
                         </div>
                     </div>
                 </div>
-                <Footer.Divider>
-                    <div className="w-full sm:flex sm:items-center sm:justify-between">
-                        <Footer.Copyright
-                            href="#"
-                            by="VIG's Blog"
-                            year={new Date().getFullYear()}
+                <Footer.Divider />
+                <div className="w-full sm:flex sm:items-center sm:justify-between">
+                    <Footer.Copyright
+                        href="#"
+                        by="VIG's Blog"
+                        year={new Date().getFullYear()}
+                    />
+                    <div className="flex gap-6 sm:mt-0 mt-4 sm:justify-center">
+                        <Footer.Icon
+                            href="https://www.facebook.com"
+                            icon={FaFacebookSquare}
                         />
-                        <div className="flex gap-6 sm:mt-0 mt-4 sm:justify-center">
-                            <Footer.Icon
-                                href="https://www.facebook.com"
-                                icon={FaFacebookSquare}
-                            />
-                            <Footer.Icon
-                                href="https://www.instagram.com"
-                                icon={FaInstagramSquare}
-                            />
-                            <Footer.Icon
-                                href="https://www.threads.com"
-                                icon={FaSquareThreads}
-                            />
-                            <Footer.Icon
-                                href="https://www.github.com"
-                                icon={FaGithubSquare}
-                            />
-                            <Footer.Icon
-                                href="https://www.xtwitter.com"
-                                icon={FaSquareXTwitter}
-                            />
-                        </div>
+                        <Footer.Icon
+                            href="https://www.instagram.com"
+                            icon={FaInstagramSquare}
+                        />
+                        <Footer.Icon
+                            href="https://www.twitter.com"
+                            icon={FaTwitterSquare}
+                        />
+                        <Footer.Icon
+                            href="https://www.github.com"
+                            icon={FaGithubSquare}
+                        />
+                        <Footer.Icon
+                            href="https://www.xtwitter.com"
+                            icon={FaLinkedin}
+                        />
                     </div>
-                </Footer.Divider>
+                </div>
             </div>
         </Footer>
     );
