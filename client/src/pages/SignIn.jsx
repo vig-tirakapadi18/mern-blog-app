@@ -1,6 +1,8 @@
 import { Alert, Button, Label, Spinner, TextInput } from "flowbite-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { userActions } from "../store/userSlice";
 
 const SignIn = () => {
     const [formData, setFormData] = useState({
@@ -8,9 +10,12 @@ const SignIn = () => {
         email: "",
         password: "",
     });
-    const [errorMessage, setErrorMessage] = useState(null);
-    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const dispatchActions = useDispatch();
+
+    const { loading, error: errorMessage } = useSelector((state) => state.user);
+
+    const { signInStart, signInSuccess, signInFailure } = userActions;
 
     const inputChangeHandler = (event) => {
         setFormData({
@@ -23,12 +28,13 @@ const SignIn = () => {
         event.preventDefault();
 
         if (!formData.email || !formData.password) {
-            return setErrorMessage("Please fill in all required fields.");
+            return dispatchActions(
+                signInFailure("Please fill in all required fields.")
+            );
         }
 
         try {
-            setLoading(true);
-            setErrorMessage(null);
+            dispatchActions(signInStart());
             const response = await fetch("/api/auth/sign-in", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -36,16 +42,15 @@ const SignIn = () => {
             });
             const responseData = await response.json();
             if (responseData.success === false) {
-                return setErrorMessage(responseData.message);
+                return dispatchActions(signInFailure(responseData.message));
             }
-            setLoading(false);
 
             if (response.ok) {
+                dispatchActions(signInSuccess(responseData));
                 navigate("/");
             }
         } catch (error) {
-            console.log(error.message);
-            setLoading(false);
+            dispatchActions(signInFailure(error.message));
         }
     };
 
