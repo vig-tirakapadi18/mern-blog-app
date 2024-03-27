@@ -7,6 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import Header from "./components/Header";
+import FooterComp from "./components/Footer";
 
 const App = () => {
     return (
@@ -38,6 +39,7 @@ const App = () => {
                     element={<SignUp />}
                 />
             </Routes>
+            <FooterComp />
         </Fragment>
     );
 };
