@@ -9,13 +9,13 @@ import { useNavigate } from "react-router-dom";
 const OAuth = () => {
     const dispatchActions = useDispatch();
     const navigate = useNavigate();
+    const auth = getAuth(app);
 
     const { signInSuccess } = userActions;
 
     const googleClickHandler = async () => {
         const provider = new GoogleAuthProvider();
         provider.setCustomParameters({ prompt: "select_account" });
-        const auth = getAuth(app);
 
         try {
             const resultsFromGoogle = await signInWithPopup(auth, provider);
@@ -23,7 +23,7 @@ const OAuth = () => {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    name: resultsFromGoogle.user.diaplayName,
+                    name: resultsFromGoogle.user.displayName,
                     email: resultsFromGoogle.user.email,
                     googlePhotoUrl: resultsFromGoogle.user.photoURL,
                 }),
@@ -31,11 +31,10 @@ const OAuth = () => {
 
             const responseData = await response.json();
 
-            if (responseData.ok) {
+            if (response.ok) {
                 dispatchActions(signInSuccess(responseData));
+                navigate("/");
             }
-
-            navigate("/");
         } catch (error) {
             console.log(error);
         }
