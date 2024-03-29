@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import { Alert, Button, TextInput } from "flowbite-react";
+import { Alert, Button, Modal, TextInput } from "flowbite-react";
 import { useEffect, useRef, useState } from "react";
 import {
     getDownloadURL,
@@ -11,6 +11,7 @@ import app from "../firebase";
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { userActions } from "../store/userSlice";
+import { FaExclamationTriangle } from "react-icons/fa";
 
 const DashboardProfile = () => {
     const [uploadImage, setUploadImage] = useState(null);
@@ -20,9 +21,10 @@ const DashboardProfile = () => {
     const [imageUploading, setImageUploading] = useState(false);
     const [updateUserSuccess, setUpdateUserSuccess] = useState(null);
     const [updateUserFailure, setUpdateUserFailure] = useState(null);
+    const [showModal, setShowModal] = useState(false);
 
     const imageRef = useRef();
-    const { currentUser } = useSelector((state) => state.user);
+    const { currentUser, error } = useSelector((state) => state.user);
     const [formData, setFormData] = useState({});
     const dispatchActions = useDispatch();
 
@@ -128,6 +130,31 @@ const DashboardProfile = () => {
         }
     };
 
+    const deleteUserHandler = async () => {
+        setShowModal(false);
+
+        try {
+            dispatchActions(userActions.deleteStart());
+            const response = await fetch(
+                `/api/user/delete/${currentUser._id}`,
+                {
+                    method: "DELETE",
+                }
+            );
+            const responseData = await response.json();
+
+            if (!response.ok) {
+                dispatchActions(
+                    userActions.deleteFailure(responseData.message)
+                );
+            } else {
+                dispatchActions(userActions.deleteSuccess(responseData));
+            }
+        } catch (error) {
+            dispatchActions(userActions.deleteFailure(error.message));
+        }
+    };
+
     return (
         <div className="max-w-lg mx-auto p-3 w-full">
             <h1 className="my-7 text-center font-semibold text-3xl">Profile</h1>
@@ -211,9 +238,14 @@ const DashboardProfile = () => {
                 </Button>
             </form>
             <div className="text-rose-500 flex justify-between mt-5">
-                <span className="cursor-pointer">Delete Account</span>
+                <span
+                    className="cursor-pointer"
+                    onClick={() => setShowModal(true)}>
+                    Delete Account
+                </span>
                 <span className="cursor-pointer">Sign Out</span>
             </div>
+
             {updateUserSuccess && (
                 <Alert
                     color="success"
@@ -228,6 +260,42 @@ const DashboardProfile = () => {
                     {updateUserFailure}
                 </Alert>
             )}
+            {error && (
+                <Alert
+                    color="failure"
+                    className="mt-5">
+                    {error}
+                </Alert>
+            )}
+
+            <Modal
+                show={showModal}
+                onClose={() => setShowModal(false)}
+                popup
+                size="md">
+                <Modal.Header />
+                <Modal.Body>
+                    <div className="text-center">
+                        <FaExclamationTriangle
+                            color="#e11d48"
+                            className="h-14 w-14 mb-5 mx-auto"
+                        />
+                        <h3 className="mb-5 text-lg dark:text-white">
+                            Are you sure you want to delete your account?
+                        </h3>
+                        <div className="flex justify-center gap-8">
+                            <Button
+                                color="failure"
+                                onClick={deleteUserHandler}>
+                                Yes, I&apos;m sure!
+                            </Button>
+                            <Button onClick={() => setShowModal(false)}>
+                                No, cancel!
+                            </Button>
+                        </div>
+                    </div>
+                </Modal.Body>
+            </Modal>
         </div>
     );
 };
