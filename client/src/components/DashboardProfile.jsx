@@ -1,4 +1,4 @@
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Alert, Button, TextInput } from "flowbite-react";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -10,14 +10,21 @@ import {
 import app from "../firebase";
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
+import { userActions } from "../store/userSlice";
 
 const DashboardProfile = () => {
     const [uploadImage, setUploadImage] = useState(null);
     const [imageUrl, setImageUrl] = useState(null);
     const [imageUploadProgress, setImageUploadProgress] = useState(null);
     const [imageUploadError, setImageUploadError] = useState(null);
+    const [imageUploading, setImageUploading] = useState(false);
+    const [updateUserSuccess, setUpdateUserSuccess] = useState(null);
+    const [updateUserFailure, setUpdateUserFailure] = useState(null);
+
     const imageRef = useRef();
     const { currentUser } = useSelector((state) => state.user);
+    const [formData, setFormData] = useState({});
+    const dispatchActions = useDispatch();
 
     const imageChangeHandler = (event) => {
         const file = event.target.files[0];
@@ -29,6 +36,7 @@ const DashboardProfile = () => {
     };
 
     const uploadImageFile = async () => {
+        setImageUploading(true);
         setImageUploadError(null);
 
         const storage = getStorage(app);
@@ -52,11 +60,14 @@ const DashboardProfile = () => {
                 setImageUploadProgress(null);
                 setUploadImage(null);
                 setImageUrl(null);
+                setImageUploading(false);
             },
             () => {
-                getDownloadURL(uploadTask.snapshot.ref).then((downloadURl) =>
-                    setImageUrl(downloadURl)
-                );
+                getDownloadURL(uploadTask.snapshot.ref).then((downloadURl) => {
+                    setImageUrl(downloadURl);
+                    setFormData({ ...formData, profilePicture: downloadURl });
+                    setImageUploading(false);
+                });
             }
         );
     };
@@ -67,10 +78,62 @@ const DashboardProfile = () => {
         }
     }, [uploadImage]);
 
+    const inputChangeHandler = (event) => {
+        setFormData({ ...formData, [event.target.id]: event.target.value });
+    };
+
+    const submitHandler = async (event) => {
+        event.preventDefault();
+        setUpdateUserFailure(null);
+        setUpdateUserSuccess(null);
+
+        if (Object.keys(formData).length === 0) {
+            setUpdateUserFailure("No changes made!");
+            return;
+        }
+
+        if (imageUploading) {
+            setUpdateUserFailure("Please wait for the image to be uploaded!");
+            return;
+        }
+
+        try {
+            dispatchActions(userActions.updateStart());
+
+            const response = await fetch(
+                `/api/user/update/${currentUser._id}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(formData),
+                }
+            );
+
+            const responseData = await response.json();
+
+            if (!response.ok) {
+                dispatchActions(
+                    userActions.updateFailure(responseData.message)
+                );
+                setUpdateUserFailure(responseData.message);
+            } else {
+                dispatchActions(userActions.updateSuccess(responseData));
+                setUpdateUserSuccess("User profile updated successfully!");
+            }
+        } catch (error) {
+            dispatchActions(userActions.updateFailure(error));
+            setUpdateUserFailure(error.message);
+        }
+    };
+
     return (
         <div className="max-w-lg mx-auto p-3 w-full">
             <h1 className="my-7 text-center font-semibold text-3xl">Profile</h1>
-            <form className="flex flex-col gap-4">
+            <form
+                className="flex flex-col gap-4"
+                onSubmit={submitHandler}>
                 <input
                     type="file"
                     accept="image/*"
@@ -124,17 +187,20 @@ const DashboardProfile = () => {
                     id="username"
                     placeholder="Username"
                     defaultValue={currentUser.username}
+                    onChange={inputChangeHandler}
                 />
                 <TextInput
                     type="email"
                     id="email"
                     placeholder="Email"
                     defaultValue={currentUser.email}
+                    onChange={inputChangeHandler}
                 />
                 <TextInput
                     type="password"
                     id="password"
                     placeholder="Password"
+                    onChange={inputChangeHandler}
                 />
 
                 <Button
@@ -148,6 +214,20 @@ const DashboardProfile = () => {
                 <span className="cursor-pointer">Delete Account</span>
                 <span className="cursor-pointer">Sign Out</span>
             </div>
+            {updateUserSuccess && (
+                <Alert
+                    color="success"
+                    className="mt-5">
+                    {updateUserSuccess}
+                </Alert>
+            )}
+            {updateUserFailure && (
+                <Alert
+                    color="failure"
+                    className="mt-5">
+                    {updateUserFailure}
+                </Alert>
+            )}
         </div>
     );
 };
