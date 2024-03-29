@@ -1,11 +1,14 @@
 import { Sidebar } from "flowbite-react";
 import { useEffect, useState } from "react";
 import { FaArrowRight, FaUser } from "react-icons/fa";
+import { useDispatch } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
+import { userActions } from "../store/userSlice";
 
 const DashboardSidebar = () => {
     const path = useLocation();
     const [tab, setTab] = useState("");
+    const dispatchActions = useDispatch();
 
     useEffect(() => {
         const urlParams = new URLSearchParams(path.search);
@@ -15,6 +18,24 @@ const DashboardSidebar = () => {
             setTab(tabFromUrl);
         }
     }, [path.search]);
+
+    const signOutHandler = async () => {
+        try {
+            const response = await fetch("/api/user/sign-out", {
+                method: "POST",
+            });
+
+            const responseData = await response.json();
+
+            if (!response.ok) {
+                console.log(responseData.message);
+            } else {
+                dispatchActions(userActions.signOutSuccess());
+            }
+        } catch (error) {
+            console.log(error.message);
+        }
+    };
 
     return (
         <Sidebar className="w-full md:w-56">
@@ -32,8 +53,9 @@ const DashboardSidebar = () => {
                     </Link>
                     <Sidebar.Item
                         icon={FaArrowRight}
-                        className="cursor-pointer">
-                        Profile
+                        className="cursor-pointer"
+                        onClick={signOutHandler}>
+                        Sign Out
                     </Sidebar.Item>
                 </Sidebar.ItemGroup>
             </Sidebar.Items>

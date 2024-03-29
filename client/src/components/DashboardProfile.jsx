@@ -155,6 +155,24 @@ const DashboardProfile = () => {
         }
     };
 
+    const signOutHandler = async () => {
+        try {
+            const response = await fetch("/api/user/sign-out", {
+                method: "POST",
+            });
+
+            const responseData = await response.json();
+
+            if (!response.ok) {
+                console.log(responseData.message);
+            } else {
+                dispatchActions(userActions.signOutSuccess());
+            }
+        } catch (error) {
+            console.log(error.message);
+        }
+    };
+
     return (
         <div className="max-w-lg mx-auto p-3 w-full">
             <h1 className="my-7 text-center font-semibold text-3xl">Profile</h1>
@@ -243,7 +261,11 @@ const DashboardProfile = () => {
                     onClick={() => setShowModal(true)}>
                     Delete Account
                 </span>
-                <span className="cursor-pointer">Sign Out</span>
+                <span
+                    className="cursor-pointer"
+                    onClick={signOutHandler}>
+                    Sign Out
+                </span>
             </div>
 
             {updateUserSuccess && (
