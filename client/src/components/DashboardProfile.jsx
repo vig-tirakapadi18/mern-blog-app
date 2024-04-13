@@ -12,6 +12,7 @@ import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { userActions } from "../store/userSlice";
 import { FaExclamationTriangle } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const DashboardProfile = () => {
     const [uploadImage, setUploadImage] = useState(null);
@@ -24,7 +25,7 @@ const DashboardProfile = () => {
     const [showModal, setShowModal] = useState(false);
 
     const imageRef = useRef();
-    const { currentUser, error } = useSelector((state) => state.user);
+    const { currentUser, error, loading } = useSelector((state) => state.user);
     const [formData, setFormData] = useState({});
     const dispatchActions = useDispatch();
 
@@ -251,9 +252,21 @@ const DashboardProfile = () => {
                 <Button
                     type="submit"
                     className="bg-gradient-to-r from-rose-500  to-emerald-500 outline-none border-none"
-                    outline>
-                    Update
+                    outline
+                    disabled={loading || imageUploading}>
+                    {loading ? "Loading..." : "Update"}
                 </Button>
+
+                {currentUser.isAdmin && (
+                    <Link to={"/create-post"}>
+                        <Button
+                            type="button"
+                            gradientDuoTone="purpleToBlue"
+                            className="w-full">
+                            Create a post
+                        </Button>
+                    </Link>
+                )}
             </form>
             <div className="text-rose-500 flex justify-between mt-5">
                 <span
